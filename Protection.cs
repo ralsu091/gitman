@@ -21,7 +21,7 @@ public class Protection : BaseBranchAction {
         } catch { }
 
         if (prot?.RequiredPullRequestReviews == null || prot.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers) {
-            l($"[UPDATE] will add {reviewers} review enforment to {repo.Name}", 1);
+            l($"[UPDATE] will add {reviewers} review enforcement to {repo.Name}", 1);
             all_repos.Add(repo);
         } else {
             l($"[OK] {repo.Name} already has {this.branch} branch protection with {prot.RequiredPullRequestReviews.RequiredApprovingReviewCount} reviewers", 1);
