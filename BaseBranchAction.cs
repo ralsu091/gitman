@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 public abstract class BaseBranchAction {
-        public GitHubClient Client;
-        public bool DryRun = true;
+        public GitHubClient Client {get; set; }
+        public bool DryRun { get; set; } = true;
+        public string Organisation { get; set; } = "sectigo-eng";
 
         public abstract Task Check(List<Repository> all_repos, Repository repo);
         public abstract Task Action(Repository repo);
@@ -14,8 +15,8 @@ public abstract class BaseBranchAction {
         public async Task DoForAll() {
             var add_to_repos = new List<Repository>();
 
-            var repos = await Client.Repository.GetAllForOrg("sectigo-eng", new ApiOptions {
-                PageSize = 10000
+            var repos = await Client.Repository.GetAllForOrg(this.Organisation, new ApiOptions {
+                PageSize = 100
             });
             foreach (var repo in repos)
             {
@@ -25,6 +26,8 @@ public abstract class BaseBranchAction {
             if (DryRun) return;
 
             if (add_to_repos.Count == 0) return;
+
+            Console.WriteLine("\n");
 
             foreach (var repo in add_to_repos)
             {
