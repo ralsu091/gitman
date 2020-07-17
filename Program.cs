@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Octokit;
 using System.Threading.Tasks;
 using Mono.Options;
+using System.Collections.Generic;
 
 namespace gitman
 {
