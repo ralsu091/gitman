@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Octokit;
 using System.Linq;
 using System;
+using gitman;
 
 /// <remarks>
 /// For some reason, I can't find the `update repo permisions for teams` call in 
@@ -27,7 +28,7 @@ public class Collaborators : BaseBranchAction
         // Figure out the team id, this only has to happen once (and this function get repeated)
         if (team == null) 
         {
-            var all_teams = await Client.Organization.Team.GetAll("sectigo-eng");
+            var all_teams = await Client.Organization.Team.GetAll(Config.Github.Org);
             team = all_teams.Single(t => t.Name.Equals(teamname, StringComparison.OrdinalIgnoreCase));
         }
 

@@ -3,18 +3,41 @@ using Octokit;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Mono.Options;
 
 namespace gitman
 {
     class Program
     {
         private static GitHubClient client;
-        private static bool DryRun = true;
-
+        
         static async Task Main(string[] args)
         {
+            var opts = new OptionSet() {
+                {"u|user=", "(REQUIRED) A github user with admin access.", u => Config.Github.User = u}
+                , {"t|token=", "(REQUIRED) A github token that has admin access to the org.", t => Config.Github.Token = t  }
+                , {"org=", "The organisation we need to run the actions against (defaults to `sectigo-eng`)", o => Config.Github.Org = o}
+                
+                , {"no-dryrun", "Do not change anything, just display changes.", d => Config.DryRun = false }
+                
+                , {"h|help", p => Config.Help = true}
+            };
+
+            try {
+                opts.Parse(args);
+                Console.WriteLine(Config.ToString());
+            } catch (OptionException e) {
+                Console.WriteLine (e.Message);
+                return;
+            }
+
+            if (!Config.Validate() || Config.Help) {
+                opts.WriteOptionDescriptions(Console.Out);
+                return;
+            }
+
             client = new GitHubClient(new ProductHeaderValue("SuperMassiveCLI"));
-            client.Credentials = new Credentials("joostschriek", "haha");
+            client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
             
             Console.WriteLine("Checking merge setting");
             await new Merging(squash: true) { Client = client }.DoForAll();
