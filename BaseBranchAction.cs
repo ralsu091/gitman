@@ -1,20 +1,23 @@
 using System;
 using Octokit;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using gitman;
 
-public abstract class BaseBranchAction {
-        public GitHubClient Client {get; set; }
+namespace gitman
+{
+    public abstract class BaseBranchAction
+    {
+        public GitHubClient Client { get; set; }
 
         public abstract Task Check(List<Repository> all_repos, Repository repo);
         public abstract Task Action(Repository repo);
 
-        public async Task DoForAll() {
+        public async Task DoForAll()
+        {
             var add_to_repos = new List<Repository>();
 
-            var repos = await Client.Repository.GetAllForOrg(Config.Github.Org, new ApiOptions {
+            var repos = await Client.Repository.GetAllForOrg(Config.Github.Org, new ApiOptions
+            {
                 PageSize = 100
             });
             foreach (var repo in repos)
@@ -33,7 +36,9 @@ public abstract class BaseBranchAction {
                 await Action(repo);
             }
         }
-        protected void l(string msgs, int tab = 0) {
+        protected void l(string msgs, int tab = 0)
+        {
             Console.WriteLine(new String('\t', tab) + msgs);
         }
+    }
 }

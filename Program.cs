@@ -1,8 +1,6 @@
 ﻿using System;
 using Octokit;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using Mono.Options;
 
 namespace gitman
@@ -25,7 +23,7 @@ namespace gitman
 
             try {
                 opts.Parse(args);
-                Console.WriteLine(Config.ToString());
+                Console.WriteLine($"Current configuration: {Config.ToString()}");
             } catch (OptionException e) {
                 Console.WriteLine (e.Message);
                 return;

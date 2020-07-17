@@ -8,6 +8,7 @@ namespace gitman {
 
                 public static new string ToString() => $"Github[user={User} token={!string.IsNullOrEmpty(Token)} Org={Org}]";
             }
+            
             public static bool DryRun { get; set; } = true;
             public static bool Help { get; set; }
 
