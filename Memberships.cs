@@ -52,7 +52,7 @@ namespace gitman
             
             // Get all our members
             members = (await Client.Organization.Member.GetAll(Config.Github.Org, new ApiOptions { PageSize = 1000 })).Select(m => m.Login);
-            
+                        
             
         }           
 
