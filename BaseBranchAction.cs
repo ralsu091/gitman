@@ -29,8 +29,6 @@ namespace gitman
 
             if (add_to_repos.Count == 0) return;
 
-            Console.WriteLine("\n");
-
             foreach (var repo in add_to_repos)
             {
                 await Action(repo);
