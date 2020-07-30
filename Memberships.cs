@@ -3,29 +3,33 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octokit;
 using System.Linq;
-using System.IO;
-using Jil;
-using System.Text;
 
 namespace gitman
 {
-    public class Memberships
+    public class Memberships : BaseAction
     {
-        public GitHubClient Client { get; set; }
-        public Audit.AuditDto AuditData { get; set; }
+        private Audit.AuditDto auditData;
+        private string team_name;
+        private List<string> proposed_members;
 
-        public async Task Do(string team_name, List<string> proposted_members) 
+        public Memberships(Audit.AuditDto auditData, string team_name, List<string> proposed_members) {
+            this.auditData = auditData;
+            this.team_name = team_name;
+            this.proposed_members = proposed_members;
+        }
+
+        public override async Task Do()
         {
-            if (AuditData == null) {
+            if (auditData == null) {
                 throw new Exception("Audit data has to be set!");
             }
 
-            var team_id = AuditData.Teams.Single(t => t.Value.Equals(team_name)).Key;
+            var team_id = auditData.Teams.Single(t => t.Value.Equals(team_name)).Key;
             l($"Team mebers in {team_name} ({team_id})", 1);
 
             // figure out the modifications to the team
-            var to_remove = AuditData.MembersByTeam[team_name].Where(m => !proposted_members.Contains(m));
-            var to_add = proposted_members.Where(m => !AuditData.MembersByTeam[team_name].Any(gm => gm.Equals(m)));
+            var to_remove = auditData.MembersByTeam[team_name].Where(m => !proposed_members.Contains(m));
+            var to_add = proposed_members.Where(m => !auditData.MembersByTeam[team_name].Any(gm => gm.Equals(m)));
 
             foreach (var m in to_add)
             {
@@ -59,10 +63,5 @@ namespace gitman
                     l($"[ERROR] Could not remove {member} from {team_name} ({team_id}", 2);
             }
         }
-
-
-        private string Dump(IEnumerable<string> list) => string.Join(", ", list);
-
-        protected void l(string msgs, int tab = 0) => Console.WriteLine(new String('\t', tab) + msgs);
     }
 }

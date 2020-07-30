@@ -66,18 +66,18 @@ namespace gitman
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
             Console.WriteLine("\nChecking branch protections");
-            await new Protection() { Client = client }.DoForAll();
+            await new Protection() { Client = client }.Do();
                        
             Console.WriteLine("\n\nChecking merge setting");
-            await new Merging(squash: true) { Client = client }.DoForAll();
+            await new Merging(squash: true) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking repo collaborators");
-            await new Collaborators("developers") { Client = client }.DoForAll();
-            await new Collaborators("admins", Permission.Admin) { Client = client }.DoForAll();
-            await new Collaborators("devops-integrations", only: devops_repos) { Client = client }.DoForAll();
+            await new Collaborators("developers") { Client = client }.Do();
+            await new Collaborators("admins", Permission.Admin) { Client = client }.Do();
+            await new Collaborators("devops-integrations", only: devops_repos) { Client = client }.Do();
 
             Console.WriteLine("\n\nChecking branch protections");
-            await new Protection() { Client = client }.DoForAll();
+            await new Protection() { Client = client }.Do();
 
             Console.WriteLine("\n\nGenerating audit data on ./");
             var audit = new Audit(outputPath: "./") { Client = client };
@@ -94,7 +94,7 @@ namespace gitman
                 Console.WriteLine("\n\nChecking teams memberships");
                 foreach (var team in GetTeams())
                 {
-                    await new Memberships { Client = client, AuditData = data }.Do(team.Key, team.Value);
+                    await new Memberships(data, team.Key, team.Value) { Client = client }.Do();
                 }
         }
         

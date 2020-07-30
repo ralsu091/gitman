@@ -9,13 +9,11 @@ using System.Text;
 
 namespace gitman
 {
-    public class Audit
+    public class Audit : BaseAction
     {
-        public GitHubClient Client { get; set; }
         public AuditDto Data { get; private set; } = new AuditDto();
 
-        private string outputPath;
-        private string fileName;
+        private string outputPath, fileName;
 
         public Audit(string outputPath = null, string fileName = "audit_report.json") {
             this.outputPath = outputPath;
@@ -41,7 +39,7 @@ namespace gitman
             }
         }
 
-        public async Task Do() 
+        public override async Task Do() 
         {            
             // Get all the teams and members
             var teams = await Client.Organization.Team.GetAll(Config.Github.Org);
@@ -63,9 +61,5 @@ namespace gitman
 
             l(Data.ToString(2));
         }
-
-        private string Dump(IEnumerable<string> list) => string.Join(", ", list);
-
-        protected void l(string msgs, int tab = 0) => Console.WriteLine(new String('\t', tab) + msgs);
     }
 }
