@@ -1,0 +1,72 @@
+{
+    "admins": [
+        "joostschriek",
+        "blastdan",
+        "ahanafy",
+        "vmartino",
+        "xhsun",
+        "matthewkrupnik",
+        "mariarsectigo"
+    ],
+    "alpha": [
+        "joostschriek",
+        "blastdan",
+        "ahanafy",
+        "TylerMizuyabu",
+        "vmartino",
+        "matthewkrupnik",
+        "josephtrot",
+        "jpound21",
+        "mariarsectigo"
+    ],
+    "bravo": [
+        "blastdan",
+        "eddymesa",
+        "alexyorke",
+        "xhsun",
+        "lulin1994",
+        "matthewkrupnik",
+        "mwakimsectigo",
+        "sprasad08",
+        "JonathanSectigo",
+        "traptip",
+        "Greg-Sectigo"
+    ],
+    "code-guard": [
+        "jmanuzak",
+        "danprime",
+        "brennanschnell-sectigo"
+    ],
+    "developers": [
+        "ahanafy",
+        "alexyorke",
+        "blastdan",
+        "brennanschnell-sectigo",
+        "danprime",
+        "eddymesa",
+        "Greg-Sectigo",
+        "jmanuzak",
+        "JonathanSectigo",
+        "joostschriek",
+        "josephtrot",
+        "jpound21",
+        "lulin1994",
+        "mariarsectigo",
+        "matthewkrupnik",
+        "mwakimsectigo",
+        "nimaks",
+        "sprasad08",
+        "traptip",
+        "twoequaldots",
+        "TylerMizuyabu",
+        "vmartino",
+        "xhsun"
+    ],
+    "devops-integrations": [
+        "traptip"
+    ],
+    "it-ops": [
+        "twoequaldots",
+        "brennanschnell-sectigo"
+    ]
+}
