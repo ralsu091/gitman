@@ -36,26 +36,39 @@ namespace gitman
                 team = all_teams.Single(t => t.Name.Equals(teamname, StringComparison.OrdinalIgnoreCase));
             }
 
-            // Maybe we can skip it if we specified the :only arg
-            if (included.Any() && included.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase)))
-            {
-                l($"[SKIP] {repo.Name} does not need {team.Name} as a collaborator", 1);
-                return;
-            }
+            Func<string, bool> excluded = (string tm) => included.Any() && included.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase));
 
             var repo_teams = await Client.Repository.GetAllTeams(repo.Owner.Login, repo.Name);
             var repo_team = repo_teams.SingleOrDefault(t => t.Name.Equals(team.Name));
+
+            // If we didn't find the team on the repo, but it's in the :only list, then we need to remove it.  If it's not on 
+            //  the :only list then we're OK as long as we have the correct permissions.
+            // If we didn't find the team on the repo, and they aren't on the :only list, then we should add them. If we 
+            //  didn't find the team on the repo and they _are_ on the :only list, we should skip.
             if (repo_team != null)
             {
-                l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
-
-                if (!repo_team.Permission.Equals(this.permission.ToString()))
+                if (excluded(repo_team.Name))
                 {
-                    l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) of {repo.Name}", 1);
-                    all_repos.Add(repo);
+                    l($"[UPDATE] Will remove {team.Name} from {repo.Name}", 1);
+                }
+                else
+                {
+                    if (repo_team.Permission.Equals(this.permission.ToString()))
+                    {
+                        l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
+                    } 
+                    else 
+                    {
+                        l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) of {repo.Name}", 1);
+                        all_repos.Add(repo);
+                    }
                 }
             }
-            else
+            else if (excluded(repo.Name))
+            {
+                l($"[SKIP] {repo.Name} does not need {team.Name} as a collaborator", 1);
+            } 
+            else 
             {
                 l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
                 all_repos.Add(repo);
