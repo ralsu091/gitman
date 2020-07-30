@@ -27,13 +27,14 @@ namespace gitman
             public List<string>  Members {get; set;} = new List<String>();
             public Dictionary<string, IEnumerable<string>> MembersByTeam { get; set; } = new Dictionary<string, IEnumerable<string>>();
 
-            public override string  ToString(){ 
+            public string ToString(int indent = 0){ 
+                var tabs = new string('\t', indent);
                 var s = new StringBuilder();
-                s.AppendLine($"Member ({Members.Count})=[{string.Join(", ", Members)}]");
-                s.AppendLine($"Teams ({Teams.Count})=[{string.Join(", ", Teams.Select(t => t.Value))}]");
+                s.AppendLine($"{tabs}Members ({Members.Count})=[{string.Join(", ", Members)}]");
+                s.AppendLine($"{tabs}Teams ({Teams.Count})=[{string.Join(", ", Teams.Select(t => t.Value))}]");
                 foreach (var team in MembersByTeam)
                 {
-                    s.AppendLine($"{team.Key} ({team.Value.Count()})=[{string.Join(", ", team.Value)}]");
+                    s.AppendLine($"{tabs}\t{team.Key} ({team.Value.Count()})=[{string.Join(", ", team.Value)}]");
                 }
 
                 return s.ToString();
@@ -59,6 +60,8 @@ namespace gitman
                 using var writer = new StreamWriter(Path.Combine(outputPath, fileName));
                 JSON.Serialize(Data, writer, Jil.Options.PrettyPrintCamelCase);
             }
+
+            l(Data.ToString(2));
         }
 
         private string Dump(IEnumerable<string> list) => string.Join(", ", list);

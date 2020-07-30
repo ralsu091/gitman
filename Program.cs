@@ -65,10 +65,10 @@ namespace gitman
             client = new GitHubClient(new ProductHeaderValue("SuperMassiveCLI"));
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
-            Console.WriteLine("\n\nChecking branch protections");
+            Console.WriteLine("\nChecking branch protections");
             await new Protection() { Client = client }.DoForAll();
                        
-            Console.WriteLine("Checking merge setting");
+            Console.WriteLine("\n\nChecking merge setting");
             await new Merging(squash: true) { Client = client }.DoForAll();
             
             Console.WriteLine("\n\nChecking repo collaborators");
@@ -83,17 +83,21 @@ namespace gitman
             var audit = new Audit(outputPath: "./") { Client = client };
             await audit.Do();
 
-            if (Config.HasTeamsStructureFile) 
+            if (Config.HasTeamsStructureFile)
             {
-                Console.WriteLine("Checking teams memberships");
-                var teams = GetTeams();
-                foreach (var team in teams)
-                {
-                    await new Memberships { Client = client, AuditData = audit.Data }.Do(team.Key, team.Value);
-                }
+                await CheckTeamMemberships(audit.Data);
             }
         }
 
+        private static async Task CheckTeamMemberships(Audit.AuditDto data) 
+        {
+                Console.WriteLine("\n\nChecking teams memberships");
+                foreach (var team in GetTeams())
+                {
+                    await new Memberships { Client = client, AuditData = data }.Do(team.Key, team.Value);
+                }
+        }
+        
         private static Dictionary<string, List<string>> GetTeams() 
         {
             using var reader = new StreamReader(Config.TeamStructureFile);

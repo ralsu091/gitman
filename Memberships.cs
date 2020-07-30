@@ -21,7 +21,7 @@ namespace gitman
             }
 
             var team_id = AuditData.Teams.Single(t => t.Value.Equals(team_name)).Key;
-            l($"Team: {team_name} ({team_id})", 1);
+            l($"Team mebers in {team_name} ({team_id})", 1);
 
             // figure out the modifications to the team
             var to_remove = AuditData.MembersByTeam[team_name].Where(m => !proposted_members.Contains(m));
@@ -29,14 +29,13 @@ namespace gitman
 
             foreach (var m in to_add)
             {
-                l($"[ADD] Will add {m} to {team_name} ({team_id})", 2);
+                l($"[UPDATE] Will add {m} to {team_name} ({team_id})", 2);
             }
 
             foreach (var m in to_remove)
             {
-                l($"[REMOVE] Will remove {m} from {team_name} ({team_id})", 2);
+                l($"[UPDATE] Will remove {m} from {team_name} ({team_id})", 2);
             }
-
 
             if (Config.DryRun) {
                 return;
