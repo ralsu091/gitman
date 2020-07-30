@@ -25,6 +25,7 @@ jobs:
     needs: build
     if: needs.build.result == 'success'
     steps:
+      - uses: actions/checkout@v2
       - name: Publish image
         uses: docker/build-push-action@v1.1.0
         with:
