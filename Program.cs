@@ -65,9 +65,6 @@ namespace gitman
             client = new GitHubClient(new ProductHeaderValue("SuperMassiveCLI"));
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
-            Console.WriteLine("\nChecking branch protections");
-            await new Protection() { Client = client }.Do();
-                       
             Console.WriteLine("\n\nChecking merge setting");
             await new Merging(squash: true) { Client = client }.Do();
             
