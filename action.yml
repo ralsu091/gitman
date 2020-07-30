@@ -12,8 +12,7 @@ inputs:
     description: "n/a"
 runs:
   using: 'docker'
-  image: 'docker://docker.pkg.github.com/joostschriek/gitman/gitman:latest'
+  image: './Dockerfile'
   args:
     - "-u ${{ inputs.username }}"
     - "-t ${{ inputs.token }}"
-    - "--teams ${{ inputs.teams }}"
