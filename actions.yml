@@ -1,0 +1,16 @@
+name: 'Gitman'
+description: 'Auditing a github org'
+inputs:
+  username:
+    required: true
+  token: 
+    required: true
+  teams:
+    required: false
+runs:
+  using: 'docker'
+  image: 'docker.pkg.github.com/joostschriek/gitman/gitman:latest'
+  args:
+    - "-u ${{ inputs.username }}"
+    - "-t ${{ inputs.token }}"
+    - "--teams ${{ inputs.teams }}"
