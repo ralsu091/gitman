@@ -9,11 +9,15 @@ namespace gitman {
                 public static new string ToString() => $"Github[user={User} token={!string.IsNullOrEmpty(Token)} Org={Org}]";
             }
             
+
+            public static string TeamStructureFile { get; set; }
+
             public static bool DryRun { get; set; } = true;
             public static bool Help { get; set; }
 
+            public static bool HasTeamsStructureFile { get => !string.IsNullOrEmpty(TeamStructureFile); }
             public static bool Validate() => !string.IsNullOrEmpty(Github.User) && !string.IsNullOrEmpty(Github.Token);
 
-            public static new string ToString() => $"{Github.ToString()} DryRun={DryRun} Help={Help}";
+            public static new string ToString() => $"{Github.ToString()} TeamStructure={TeamStructureFile} DryRun={DryRun} Help={Help}";
         }
 }

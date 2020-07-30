@@ -5,14 +5,12 @@ using System.Collections.Generic;
 
 namespace gitman
 {
-    public abstract class BaseBranchAction
+    public abstract class BaseBranchAction : BaseAction
     {
-        public GitHubClient Client { get; set; }
-
         public abstract Task Check(List<Repository> all_repos, Repository repo);
         public abstract Task Action(Repository repo);
 
-        public async Task DoForAll()
+        public override async Task Do()
         {
             var add_to_repos = new List<Repository>();
 
@@ -33,10 +31,6 @@ namespace gitman
             {
                 await Action(repo);
             }
-        }
-        protected void l(string msgs, int tab = 0)
-        {
-            Console.WriteLine(new String('\t', tab) + msgs);
         }
     }
 }
