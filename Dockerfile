@@ -6,5 +6,5 @@ RUN dotnet publish -c release -o gitman --no-restore
 
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1
 COPY --from=builder ./wtf/gitman .
-RUN ls -l
-ENTRYPOINT [ "./gitman" ]
+RUN chmod +x ./gitman
+ENTRYPOINT [ "./entrypoint.sh" ]
