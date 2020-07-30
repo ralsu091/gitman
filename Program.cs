@@ -33,7 +33,7 @@ namespace gitman
                 {"u|user=", "(REQUIRED) A github user with admin access.", u => Config.Github.User = u}
                 , {"t|token=", "(REQUIRED) A github token that has admin access to the org.", t => Config.Github.Token = t  }
                 , {"org=", "The organisation we need to run the actions against (defaults to `sectigo-eng`)", o => Config.Github.Org = o}
-                , {"teams=", "A file with the desired team structure.", ts => Config.TeamStructureFile = ts }
+                , {"teams=", "A file with the desired team structure in JSON format. We expect a Dictionary where the key is the team name, and the value a list of string with the user login names..", ts => Config.TeamStructureFile = ts }
                 , {"no-dryrun", "Do not change anything, just display changes.", d => Config.DryRun = false }
                 , {"h|help", p => Config.Help = true}
             };
