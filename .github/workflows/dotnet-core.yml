@@ -26,13 +26,23 @@ jobs:
     if: needs.build.result == 'success'
     steps:
       - uses: actions/checkout@v2
-      - name: Publish image
+      - name: Publish image to github
         uses: docker/build-push-action@v1.1.0
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: joostschriek/gitman/gitman
+          tags: latest
+          always_pull: true
+          tag_with_ref: true
+      - name: Publish image to dockerhub
+        uses: docker/build-push-action@v1.1.0
+        with:
+          username: joostschriek
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: docker.io
+          repository: joostschriek/gitman
           tags: latest
           always_pull: true
           tag_with_ref: true
