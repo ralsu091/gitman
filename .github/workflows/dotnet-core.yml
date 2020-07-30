@@ -23,7 +23,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: build
-    if: needs.tests.result == 'success'
+    if: needs.build.result == 'success'
     steps:
       - name: Publish image
         uses: docker/build-push-action@v1.1.0
