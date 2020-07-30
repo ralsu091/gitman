@@ -3,13 +3,16 @@ description: 'Auditing a github org'
 inputs:
   username:
     required: true
+    description: "n/a"
   token: 
     required: true
+    description: "n/a"
   teams:
     required: false
+    description: "n/a"
 runs:
   using: 'docker'
-  image: 'docker.pkg.github.com/joostschriek/gitman/gitman:latest'
+  image: 'docker://docker.pkg.github.com/joostschriek/gitman/gitman:latest'
   args:
     - "-u ${{ inputs.username }}"
     - "-t ${{ inputs.token }}"
