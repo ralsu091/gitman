@@ -3,59 +3,67 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octokit;
 using System.Linq;
+using System.IO;
+using Jil;
+using System.Text;
 
 namespace gitman
 {
     public class Memberships
     {
         public GitHubClient Client { get; set; }
-        
-        private string team_name;
-        private List<string> proposted_members;
+        public Audit.AuditDto AuditData { get; set; }
 
-        public Memberships(string team_name, List<string> proposted_members) {
-            this.team_name = team_name;
-            this.proposted_members = proposted_members;
-        }
-
-        public async Task Do() 
+        public async Task Do(string team_name, List<string> proposted_members) 
         {
-            // get the team
-            var teams = await Client.Organization.Team.GetAll(Config.Github.Org);
-            var team = teams.Single(t => t.Name.Equals(team_name));
+            if (AuditData == null) {
+                throw new Exception("Audit data has to be set!");
+            }
 
-            // get all the members in the team
-            var members = await Client.Organization.Team.GetAllMembers(team.Id);
+            var team_id = AuditData.Teams.Single(t => t.Value.Equals(team_name)).Key;
+            l($"Team: {team_name} ({team_id})", 1);
 
             // figure out the modifications to the team
-            var to_remove = members.Where(m => !this.proposted_members.Contains(m.Login)).Select(m => m.Login);
-            var to_add = proposted_members.Where(m => !members.Any(gm => gm.Login.Equals(m)));
+            var to_remove = AuditData.MembersByTeam[team_name].Where(m => !proposted_members.Contains(m));
+            var to_add = proposted_members.Where(m => !AuditData.MembersByTeam[team_name].Any(gm => gm.Equals(m)));
 
-            Console.WriteLine("To Add: " + Dump(to_add));
-            Console.WriteLine("To Remove: " + Dump(to_remove));
+            foreach (var m in to_add)
+            {
+                l($"[ADD] Will add {m} to {team_name} ({team_id})", 2);
+            }
 
-            // commit!
+            foreach (var m in to_remove)
+            {
+                l($"[REMOVE] Will remove {m} from {team_name} ({team_id})", 2);
+            }
+
+
+            if (Config.DryRun) {
+                return;
+            }
+
+            // Make our output pretty!
+            l("");
+
+            foreach (var member in to_add)
+            {
+                var res = await Client.Organization.Team.AddOrEditMembership(team_id, member, new UpdateTeamMembership(TeamRole.Member));
+                l($"[MODIFIED] Added {member} to {team_name} ({team_id}", 2);
+            }
+
+            foreach (var member in to_remove)
+            {
+                var res = await Client.Organization.Team.RemoveMembership(team_id, member);
+                if (res)
+                    l($"[MODIFIED] Removed {member} from {team_name} ({team_id}", 2);
+                else
+                    l($"[ERROR] Could not remove {member} from {team_name} ({team_id}", 2);
+            }
         }
 
-        public async Task Audit() 
-        {
-            var membersByTeams = new Dictionary<string, IEnumerable<string>>();
-            IEnumerable<string> members;
-            
-            // Get all the teams and members
-            var teams = await Client.Organization.Team.GetAll(Config.Github.Org);
-            foreach (var team in teams)
-            {
-                var mbs = await Client.Organization.Team.GetAllMembers(team.Id);
-                membersByTeams.Add(team.Name, mbs.Select(m => m.Login));
-            }           
-            
-            // Get all our members
-            members = (await Client.Organization.Member.GetAll(Config.Github.Org, new ApiOptions { PageSize = 1000 })).Select(m => m.Login);
-                        
-            
-        }           
 
         private string Dump(IEnumerable<string> list) => string.Join(", ", list);
+
+        protected void l(string msgs, int tab = 0) => Console.WriteLine(new String('\t', tab) + msgs);
     }
 }

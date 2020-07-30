@@ -4,6 +4,8 @@ using Octokit;
 using System.Threading.Tasks;
 using Mono.Options;
 using System.Collections.Generic;
+using System.IO;
+using Jil;
 
 namespace gitman
 {
@@ -31,9 +33,8 @@ namespace gitman
                 {"u|user=", "(REQUIRED) A github user with admin access.", u => Config.Github.User = u}
                 , {"t|token=", "(REQUIRED) A github token that has admin access to the org.", t => Config.Github.Token = t  }
                 , {"org=", "The organisation we need to run the actions against (defaults to `sectigo-eng`)", o => Config.Github.Org = o}
-
+                , {"teams=", "A file with the desired team structure.", ts => Config.TeamStructureFile = ts }
                 , {"no-dryrun", "Do not change anything, just display changes.", d => Config.DryRun = false }
-
                 , {"h|help", p => Config.Help = true}
             };
 
@@ -64,16 +65,39 @@ namespace gitman
             client = new GitHubClient(new ProductHeaderValue("SuperMassiveCLI"));
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
+            Console.WriteLine("\n\nChecking branch protections");
+            await new Protection() { Client = client }.DoForAll();
+                       
             Console.WriteLine("Checking merge setting");
             await new Merging(squash: true) { Client = client }.DoForAll();
-
-            Console.WriteLine("\n\nChecking team collaborators");
+            
+            Console.WriteLine("\n\nChecking repo collaborators");
             await new Collaborators("developers") { Client = client }.DoForAll();
             await new Collaborators("admins", Permission.Admin) { Client = client }.DoForAll();
             await new Collaborators("devops-integrations", only: devops_repos) { Client = client }.DoForAll();
 
             Console.WriteLine("\n\nChecking branch protections");
             await new Protection() { Client = client }.DoForAll();
+
+            Console.WriteLine("\n\nGenerating audit data on ./");
+            var audit = new Audit(outputPath: "./") { Client = client };
+            await audit.Do();
+
+            if (Config.HasTeamsStructureFile) 
+            {
+                Console.WriteLine("Checking teams memberships");
+                var teams = GetTeams();
+                foreach (var team in teams)
+                {
+                    await new Memberships { Client = client, AuditData = audit.Data }.Do(team.Key, team.Value);
+                }
+            }
+        }
+
+        private static Dictionary<string, List<string>> GetTeams() 
+        {
+            using var reader = new StreamReader(Config.TeamStructureFile);
+            return JSON.Deserialize<Dictionary<string, List<string>>>(reader);
         }
     }
 }
