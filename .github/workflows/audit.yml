@@ -3,8 +3,6 @@ name: .NET Core
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -20,4 +18,4 @@ jobs:
     - name: Build
       run: dotnet restore
     - name: Audit
-      run: dotnet run -u --help
+      run: dotnet run -u wat --help
