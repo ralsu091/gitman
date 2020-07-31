@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using Octokit;
 using System.Threading.Tasks;
 using Mono.Options;
-using System.Collections.Generic;
-using System.IO;
 using Jil;
+using System.IO;
 
 namespace gitman
 {
@@ -32,8 +31,9 @@ namespace gitman
             var opts = new OptionSet() {
                 {"u|user=", "(REQUIRED) A github user with admin access.", u => Config.Github.User = u}
                 , {"t|token=", "(REQUIRED) A github token that has admin access to the org.", t => Config.Github.Token = t  }
-                , {"org=", "The organisation we need to run the actions against (defaults to `sectigo-eng`)", o => Config.Github.Org = o}
-                , {"teams=", "A file with the desired team structure in JSON format. We expect a Dictionary where the key is the team name, and the value a list of string with the user login names..", ts => Config.TeamStructureFile = ts }
+                , {"o|org=", "The organisation we need to run the actions against (defaults to `sectigo-eng`)", o => Config.Github.Org = o}
+                , {"teams=", "A file with the desired team structure in JSON format. If this is set, this will enforce that team structure (including removing members from teams). We expect a Dictionary where the key is the team name, and the value a list of string with the user login names.", ts => Config.TeamStructureFile = ts }
+                , {"report=", "The path were we output the audit report. This defaults to ./", o => Config.ReportingPath = o }
                 , {"no-dryrun", "Do not change anything, just display changes.", d => Config.DryRun = false }
                 , {"h|help", p => Config.Help = true}
             };
@@ -76,8 +76,8 @@ namespace gitman
             Console.WriteLine("\n\nChecking branch protections");
             await new Protection() { Client = client }.Do();
 
-            Console.WriteLine("\n\nGenerating audit data on ./");
-            var audit = new Audit(outputPath: "./") { Client = client };
+            Console.WriteLine("\n\nPerforming team audit");
+            var audit = new Audit(outputPath: Config.ReportingPath) { Client = client };
             await audit.Do();
 
             if (Config.HasTeamsStructureFile)

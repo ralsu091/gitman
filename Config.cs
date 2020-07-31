@@ -11,7 +11,7 @@ namespace gitman {
             
 
             public static string TeamStructureFile { get; set; }
-
+            public static string ReportingPath { get; set; } = "./";
             public static bool DryRun { get; set; } = true;
             public static bool Help { get; set; }
 

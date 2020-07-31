@@ -13,11 +13,10 @@ namespace gitman
     {
         public AuditDto Data { get; private set; } = new AuditDto();
 
-        private string outputPath, fileName;
+        private string outputPath;
 
-        public Audit(string outputPath = null, string fileName = "audit_report.json") {
+        public Audit(string outputPath = null) {
             this.outputPath = outputPath;
-            this.fileName = fileName;
         }
 
         public class AuditDto { 
@@ -55,11 +54,13 @@ namespace gitman
 
             if (!string.IsNullOrEmpty(outputPath))
             {
-                using var writer = new StreamWriter(Path.Combine(outputPath, fileName));
+                var path = Path.Combine(outputPath, $"audit_{DateTime.Now.ToString("yyy-MM-dd-hhmm")}.json");
+                l($"Saving audit repot to {path}", 1);
+                using var writer = new StreamWriter(path);
                 JSON.Serialize(Data, writer, Jil.Options.PrettyPrintCamelCase);
             }
 
-            l(Data.ToString(2));
+            l(Data.ToString(1));
         }
     }
 }
