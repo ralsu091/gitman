@@ -41,9 +41,7 @@ namespace gitman
                 l($"[UPDATE] Will remove {m} from {team_name} ({team_id})", 2);
             }
 
-            if (Config.DryRun) {
-                return;
-            }
+            if (Config.DryRun) return;
 
             // Make our output pretty!
             l("");
