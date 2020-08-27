@@ -20,6 +20,7 @@ namespace gitman
         private List<Repository> update_perms = new List<Repository>();
         private List<string> included;
         private bool exclusive;
+        private List<Repository> to_remove = new List<Repository>();
 
         public Collaborators(string teamname, Permission permission = Permission.Push, List<string> only = null, List<string> not = null, bool exclusive = true)
         {
@@ -55,6 +56,7 @@ namespace gitman
                 if (excluded && exclusive)
                 {
                     l($"[UPDATE] Will remove {team.Name} from {repo.Name}", 1);
+                    to_remove.Add(repo);
                 }
                 else if (excluded && !exclusive) 
                 {
@@ -90,6 +92,12 @@ namespace gitman
             if (!removed)
             {
                 l($"[ERROR] Couldn't remove {repo.Name} from {team.Name}");
+                return;
+            }
+
+            if (to_remove.Any(r => r.Id == repo.Id)) 
+            {
+                l($"[MODIFIED] removed {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 1);
                 return;
             }
 
