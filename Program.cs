@@ -73,7 +73,6 @@ namespace gitman
             
             Console.WriteLine("\n\nChecking repo collaborators");
             await new Collaborators("developers") { Client = client }.Do();
-            await new Collaborators("developers", only: admin_repos, exclusive: false, permission: Permission.Pull) { Client = client }.Do();
             await new Collaborators("admins", Permission.Admin) { Client = client }.Do();
             await new Collaborators("devops-integrations", only: devops_repos) { Client = client }.Do();
 
