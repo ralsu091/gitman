@@ -20,14 +20,16 @@ namespace gitman
         private List<Repository> update_perms = new List<Repository>();
         private List<string> included;
         private bool exclusive;
-        private GitWrapper wrapper;
-        public Collaborators(string teamname, Permission permission = Permission.Push, List<string> only = null, List<string> not = null, bool exclusive = true)
+
+        public GitWrapper Wrapper { get; set; } 
+
+        public Collaborators(GitWrapper wrapper, string teamname, Permission permission = Permission.Push, List<string> only = null, List<string> not = null, bool exclusive = true)
         {
             this.teamname = teamname;
             this.permission = permission;
             this.included = only ?? new List<string>();
             this.exclusive = exclusive;
-            this.wrapper = new GitWrapper(Client);
+            this.Wrapper = wrapper;
         }
 
         public override async Task Check(List<Repository> all_repos, Repository repo)
@@ -35,12 +37,12 @@ namespace gitman
             // Figure out the team id, this only has to happen once (and this function get repeated)
             if (team == null)
             {
-                team = await wrapper.GetTeamAsync(teamname);
+                team = await Wrapper.GetTeamAsync(teamname);
             }
 
             Func<string, bool> isExcluded = (string tm) => included.Any() && included.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase));
 
-            var repo_teams = await wrapper.Repo.GetTeamsAsync(repo.Name);
+            var repo_teams = await Wrapper.Repo.GetTeamsAsync(repo.Name);
             var repo_team = repo_teams.SingleOrDefault(t => t.Name.Equals(team.Name));
 
             // If we didn't find the team on the repo, 
@@ -62,7 +64,8 @@ namespace gitman
                 }
                 else
                 {
-                    if (repo_team.Permission.Equals(this.permission.ToString()))
+                    l($"postition wanted={(int)this.permission} have={(int)repo_team.Permission}");
+                    if (repo_team.Permission.ToString().Equals(this.permission.ToString(), StringComparison.CurrentCultureIgnoreCase))
                     {
                         l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
                     } 
@@ -86,7 +89,7 @@ namespace gitman
 
         public override async Task Action(Repository repo)
         {
-            var res = await wrapper.Repo.UpdateTeamPermissionAsync(repo.Name, team, permission);
+            var res = await Wrapper.Repo.UpdateTeamPermissionAsync(repo.Name, team, permission);
             if (res)
             {
                 l($"[MODIFIED] Added {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 1);

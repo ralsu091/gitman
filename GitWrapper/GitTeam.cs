@@ -5,9 +5,9 @@ namespace gitman
 {
     public class GitTeam {
         public enum Perm { 
-            Admin = 0,
-            Push = 1,
-            Pull = 2
+            admin = 0,
+            push = 1,
+            pull = 2
         }
 
         public int Id { get; set; }
