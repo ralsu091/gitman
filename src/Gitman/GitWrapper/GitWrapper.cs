@@ -2,18 +2,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octokit;
 using System.Linq;
-using gitman;
-using System;
 
 namespace gitman
 {
-    public class GitWrapper {
+    public class GitWrapper : IGitWrapper {
         private Dictionary<string, Team> teamsByIds = new Dictionary<string, Team>();
-        private GitHubClient client;
+        private IGitHubClient client;
         
-        public Repository Repo { get; private set; }
+        public IRepo Repo { get; set; }
 
-        public GitWrapper(GitHubClient client) {
+        public GitWrapper(IGitHubClient client) {
             this.client = client;
             this.Repo = new Repository(this);
         }
@@ -28,7 +26,7 @@ namespace gitman
             return new GitTeam(team.Value);
         }
 
-        public class Repository {
+        public class Repository : IRepo {
             private Dictionary<string, IEnumerable<GitTeam>> teamsByRepo = new Dictionary<string, IEnumerable<GitTeam>>();
             private GitWrapper wrapper;
 

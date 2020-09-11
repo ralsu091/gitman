@@ -22,6 +22,7 @@ namespace Tests
         // If we didn't find the team on the repo, and they aren't on the :only list, then we should add them. If we 
         //  didn't find the team on the repo and they _are_ on the :only list, we should skip.
         
+        IGitWrapper wrapper;
         IGitHubClient git;
         User owner;
 
@@ -38,7 +39,7 @@ namespace Tests
             "Project 1",
             "Project 2",
         };
-
+        
         public CollaboratorTests(ITestOutputHelper output) 
         {
             Console.SetOut(new Loggy(output));
@@ -51,33 +52,22 @@ namespace Tests
             var orgName = "FooFighters";
             Config.Github.Org = orgName;
             
-            owner = CreateUser(orgName, orgName, $"{orgName}@foofighters.coffee");
+            this.wrapper = new GitWrapper(git);
             
-            // Return all the teams
-            team
-                .Setup(t => t.GetAll(It.IsAny<string>()))
-                .ReturnsAsync(teams.Select(CreateTeam).ToList().AsReadOnly());
+            var r = new Mock<IRepo>();
+            r.Setup(a => a.GetTeamsAsync(repos.First()))
+                .ReturnsAsync(teams.Select((t, i) => new GitTeam { Id = i + 1, Name = t, Permission = GitTeam.Perm.push }));
+            r.Setup(a => a.GetTeamsAsync(repos.Last()))
+                .ReturnsAsync(teams.Select((t, i) => new GitTeam { Id = i + 1, Name = t, Permission = GitTeam.Perm.push }));
 
-            // return all the repos
-            repo
-                .Setup(r => r.GetAllForOrg(It.IsAny<string>(), It.IsAny<ApiOptions>()))
-                .ReturnsAsync(repos.Select(name => CreateRepo(owner, name)).ToList().AsReadOnly());
-
-            // for project 1 return all the teams
-            repo
-                .Setup(r => r.GetAllTeams(It.IsAny<string>(), repos.First()))
-                .ReturnsAsync(teams.Select(CreateTeam).ToList().AsReadOnly());
-            // for project 2 return none of the teams
-            repo
-                .Setup(r => r.GetAllTeams(It.IsAny<string>(), repos.Last()))
-                .ReturnsAsync(new List<Team>().AsReadOnly());
-
-            org.Setup(o => o.Team).Returns(team.Object);
-            client.Setup(c => c.Organization).Returns(org.Object);
-            client.Setup(c => c.Repository).Returns(repo.Object);
-
-            this.git = client.Object;
+            var w = new Mock<IGitWrapper>();
+            w.SetupGet(a => a.Repo).Returns(r.Object);
+            w.Setup(a => a.GetTeamAsync("Alpha"))
+                .ReturnsAsync(new GitTeam { Id = 1, Name = "Alpha", Permission = GitTeam.Perm.push});
+            w.Setup(a => a.GetTeamAsync("Bravo"))
+                .ReturnsAsync(new GitTeam { Id = 1, Name = "Alpha", Permission = GitTeam.Perm.push});
             
+            this.wrapper = w.Object;
         }
 
         /* 
@@ -91,7 +81,7 @@ namespace Tests
         [Fact]
         public async Task Only_Included()
         {
-            var collab = new Collaborators(git, "Alpha", Permission.Admin, only: repos.Take(1).ToList());
+            var collab = new Collaborators(wrapper, "Alpha", Permission.Admin, only: repos.Take(1).ToList());
             await collab.Do();
 
             // We are only including the first project, which already has everybody setup
@@ -100,19 +90,14 @@ namespace Tests
 
         [Fact]
         public async Task Adding() {
-            var collab = new Collaborators(git, "Alpha", Permission.Admin);
+            var collab = new Collaborators(wrapper, "Alpha", Permission.Admin);
             await collab.Do();
 
-            var a = new Mock<Team>();
-            var push = new StringEnum<Permission>(Permission.Push);
-            a.SetupGet(a => a.Permission).Returns(push as StringEnum<PermissionLevel>);
-
-            
             Assert.Collection(collab.Change.Select(r => r.Name), 
                 item => item.Equals(repos.Last())
             );
         }
-
+        
         private Team CreateTeam(string name) => 
             new Team("", 1, "", "", name, "", TeamPrivacy.Closed, PermissionLevel.Admin, 0, 0, null, null, "");
         
