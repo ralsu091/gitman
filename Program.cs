@@ -72,9 +72,10 @@ namespace gitman
             await new Merging(squash: true) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking repo collaborators");
-            await new Collaborators("developers") { Client = client }.Do();
-            await new Collaborators("admins", Permission.Admin) { Client = client }.Do();
-            await new Collaborators("devops-integrations", only: devops_repos) { Client = client }.Do();
+            var wrapper = new GitWrapper(client);
+            await new Collaborators(wrapper, "developers") { Client = client, }.Do();
+            await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
+            await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
 
             Console.WriteLine("\n\nChecking branch protections");
             await new Protection() { Client = client }.Do();
