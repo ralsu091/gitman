@@ -15,11 +15,11 @@ namespace gitman
         public Perm Permission {get; set; }
 
         public GitTeam() { }
-
-        public GitTeam(Team team) {
-            Id = team.Id;
-            Name = team.Name;
-            Permission = Enum.Parse<Perm>(team.Permission.StringValue);
+        public GitTeam(Team team) : this(team.Id, team.Name, Enum.Parse<Perm>(team.Permission.StringValue)) { }
+        public GitTeam(int id, string name, Perm perm =  Perm.pull) {
+            Id = id;
+            Name = name;
+            Permission = perm;
         }
     }
 }

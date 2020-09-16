@@ -18,17 +18,18 @@ namespace gitman
         private string teamname;
         private Permission permission;
         private List<Repository> update_perms = new List<Repository>();
-        private List<string> included;
+        private IEnumerable<string> only, not;
         private bool exclusive;
 
         public IGitWrapper Wrapper { get; set; } 
 
-        public Collaborators(IGitWrapper wrapper, string teamname, Permission permission = Permission.Push, List<string> only = null, List<string> not = null, bool exclusive = true)
+        public Collaborators(IGitWrapper wrapper, string teamname, Permission permission = Permission.Push, IEnumerable<string> only = null, IEnumerable<string> not = null, bool exclusive = true)
         {
             this.teamname = teamname;
             this.permission = permission;
-            this.included = only ?? new List<string>();
-            this.exclusive = exclusive;
+            this.only = only ?? new List<string>();
+            this.not = not ?? new List<String>();
+           
             this.Wrapper = wrapper;
         }
 
@@ -40,7 +41,7 @@ namespace gitman
                 team = await Wrapper.GetTeamAsync(teamname);
             }
 
-            Func<string, bool> isExcluded = (string tm) => included.Any() && included.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase));
+            Func<string, bool> isExcluded = (string tm) => only.Any() && only.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase));
 
             var repo_teams = await Wrapper.Repo.GetTeamsAsync(repo.Name);
             var repo_team = repo_teams.SingleOrDefault(t => t.Name.Equals(team.Name));
@@ -87,21 +88,30 @@ namespace gitman
             }
         }
 
-        public bool Should(string repo, IEnumerable<GitTeam> repoTeams, GitTeam targetTeam, Permission targetPermission) {
-            Func<string, bool> isExcluded = (string tm) => 
-                included.Any() && included.All(r => !repo.Equals(r, StringComparison.CurrentCultureIgnoreCase));
+        public enum Update {
+            Nothing,
+            Add,
+            UpdatePermission
+        }
+
+        public Update Should(string repo, IEnumerable<GitTeam> repoTeams, GitTeam targetTeam, Permission targetPermission) {
+            var isIncluded = this.only.Any() ? this.only.Any(t => t.Equals(repo, StringComparison.CurrentCultureIgnoreCase)) : true;
+            var isExcluded = this.not.Any(t => t.Equals(repo, StringComparison.CurrentCultureIgnoreCase));
             
-            
+            if (!isIncluded || isExcluded) {
+                return Update.Nothing;
+            }
+
             var repoTeam = repoTeams.SingleOrDefault(t => t.Name.Equals(targetTeam.Name));
             if (repoTeam == null) {
-                // Should add
+                return Update.Add;
             } else {
-                if ((int) repoTeam.Permission < (int) targetPermission) {
-                    // Should readd with higher permissions
-                } else {
-                    // Do nothing
+                if ((int) repoTeam.Permission > (int) targetPermission) {
+                    return Update.UpdatePermission;
                 }
             }
+
+            return Update.Nothing;
 
             // if (repo_team != null)
             // {
@@ -137,8 +147,6 @@ namespace gitman
             //     l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
             //     all_repos.Add(repo);
             // }
-
-            return true;
         }
 
         public override async Task Action(Repository repo)
