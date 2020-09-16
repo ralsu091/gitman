@@ -69,28 +69,28 @@ namespace gitman
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
             Console.WriteLine("\n\nChecking merge setting");
-            // await new Merging(squash: true) { Client = client }.Do();
+            await new Merging(squash: true) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking repo collaborators");
             var wrapper = new GitWrapper(client);
             Console.WriteLine("\n\n[] developers ");
-            //await new Collaborators(wrapper, "developers") { Client = client, }.Do();
+            await new Collaborators(wrapper, "developers") { Client = client, }.Do();
             Console.WriteLine("\n\n[] admins");
             await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
             Console.WriteLine("\n\n[] devops-integratrions");
             await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
             
-            // Console.WriteLine("\n\nChecking branch protections");
-            // await new Protection() { Client = client }.Do();
+            Console.WriteLine("\n\nChecking branch protections");
+            await new Protection() { Client = client }.Do();
 
-            // Console.WriteLine("\n\nPerforming team audit");
-            // var audit = new Audit(outputPath: Config.ReportingPath) { Client = client };
-            // await audit.Do();
+            Console.WriteLine("\n\nPerforming team audit");
+            var audit = new Audit(outputPath: Config.ReportingPath) { Client = client };
+            await audit.Do();
 
-            // if (Config.HasTeamsStructureFile)
-            // {
-            //     await CheckTeamMemberships(audit.Data);
-            // }
+            if (Config.HasTeamsStructureFile)
+            {
+                await CheckTeamMemberships(audit.Data);
+            }
         }
 
         private static async Task CheckTeamMemberships(Audit.AuditDto data) 
