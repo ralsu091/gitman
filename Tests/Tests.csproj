@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Gitman\gitman.csproj" />
+    <ProjectReference Include="..\gitman.csproj" />
   </ItemGroup>
 
 </Project>

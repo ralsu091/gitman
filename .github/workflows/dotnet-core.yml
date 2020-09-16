@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
-      run: dotnet test src/Tests
+      run: dotnet test Tests
   
   publish:
     runs-on: ubuntu-latest
