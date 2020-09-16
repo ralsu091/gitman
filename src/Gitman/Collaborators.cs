@@ -23,7 +23,7 @@ namespace gitman
 
         public IGitWrapper Wrapper { get; set; } 
 
-        public Collaborators(IGitWrapper wrapper, string teamname, Permission permission = Permission.Push, IEnumerable<string> only = null, IEnumerable<string> not = null, bool exclusive = true)
+        public Collaborators(IGitWrapper wrapper, string teamname, Permission permission = Permission.Push, IEnumerable<string> only = null, IEnumerable<string> not = null)
         {
             this.teamname = teamname;
             this.permission = permission;
@@ -40,75 +40,56 @@ namespace gitman
             {
                 team = await Wrapper.GetTeamAsync(teamname);
             }
-
-            Func<string, bool> isExcluded = (string tm) => only.Any() && only.All(r => !repo.Name.Equals(r, StringComparison.CurrentCultureIgnoreCase));
-
             var repo_teams = await Wrapper.Repo.GetTeamsAsync(repo.Name);
             var repo_team = repo_teams.SingleOrDefault(t => t.Name.Equals(team.Name));
 
-            // If we didn't find the team on the repo, 
-            //  but it's in the :only list and it's an exclusive setting, then we need to remove it.  
-            //  but if it's on the :only list and it's _not_ an exclusive setting, we can skip this action
-            //  If it's not on the :only list then we're OK as long as we have the correct permissions.
-            // If we didn't find the team on the repo, and they aren't on the :only list, then we should add them. If we 
-            //  didn't find the team on the repo and they _are_ on the :only list, we should skip.
-            if (repo_team != null)
+            var action = Should(repo.Name, repo_teams, team, permission);
+
+            switch (action)
             {
-                var excluded = isExcluded(repo_team.Name);
-                if (excluded && exclusive)
-                {
-                    l($"[UPDATE] Will remove {team.Name} from {repo.Name}", 1);
-                }
-                else if (excluded && !exclusive) 
-                {
+                case Update.Skip:
                     l($"[SKIP] {repo.Name} doesn't need this action applied.", 1);
-                }
-                else
-                {
-                    l($"postition wanted={(int)this.permission} have={(int)repo_team.Permission}");
-                    if (repo_team.Permission.ToString().Equals(this.permission.ToString(), StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
-                    } 
-                    else 
-                    {
-                        l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) of {repo.Name}", 1);
-                        all_repos.Add(repo);
-                    }
-                }
+                    break;
+                case Update.Nothing:
+                    l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
+                    break;
+                case Update.Add:
+                    l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
+                    break;
+                case Update.UpdatePermission:
+                    l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) for {repo.Name}", 1);
+                    break;
             }
-            else if (isExcluded(repo.Name))
+
+            if (action != Update.Nothing)
             {
-                l($"[SKIP] {repo.Name} does not need {team.Name} as a collaborator", 1);
-            } 
-            else 
-            {
-                l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
                 all_repos.Add(repo);
             }
         }
 
         public enum Update {
             Nothing,
+            Skip,
             Add,
             UpdatePermission
         }
 
         public Update Should(string repo, IEnumerable<GitTeam> repoTeams, GitTeam targetTeam, Permission targetPermission) {
+            // If there is no :only filter specified, then we have to assume it's included
             var isIncluded = this.only.Any() ? this.only.Any(t => t.Equals(repo, StringComparison.CurrentCultureIgnoreCase)) : true;
             var isExcluded = this.not.Any(t => t.Equals(repo, StringComparison.CurrentCultureIgnoreCase));
-            
+
             if (!isIncluded || isExcluded) {
-                return Update.Nothing;
+                return Update.Skip;
             }
 
             var repoTeam = repoTeams.SingleOrDefault(t => t.Name.Equals(targetTeam.Name));
             if (repoTeam == null) {
                 return Update.Add;
-            } else {
-                if ((int) repoTeam.Permission > (int) targetPermission) {
-                    return Update.UpdatePermission;
-                }
+            }
+
+            if ((int) repoTeam.Permission > (int) targetPermission) {
+                return Update.UpdatePermission;
             }
 
             return Update.Nothing;

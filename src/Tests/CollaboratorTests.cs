@@ -40,7 +40,7 @@ namespace Tests
                 public void should_do_nothing_with_notportal() 
                 {
                     var action = collab.Should("NotPortal", existingTeamsOnRpos, new GitTeam(1, "Alpha"), Permission.Pull);
-                    Assert.Equal(Collaborators.Update.Nothing, action);            
+                    Assert.Equal(Collaborators.Update.Skip, action);            
                 }
 
                 [Fact]
@@ -68,7 +68,7 @@ namespace Tests
                 [Fact]
                 public void should_not_add_portal() {
                     var action = collab.Should("portal", existingTeamsOnRpos, new GitTeam(1, "Alpha"), Permission.Pull);
-                    Assert.Equal(Collaborators.Update.Nothing, action);
+                    Assert.Equal(Collaborators.Update.Skip, action);
                 }
 
                 
