@@ -19,7 +19,6 @@ namespace gitman
         private Permission permission;
         private List<Repository> update_perms = new List<Repository>();
         private IEnumerable<string> only, not;
-        private bool exclusive;
 
         public IGitWrapper Wrapper { get; set; } 
 
