@@ -28,9 +28,21 @@ namespace gitman
             this.teamname = teamname;
             this.permission = permission;
             this.only = only ?? new List<string>();
-            this.not = not ?? new List<String>();
-           
+            this.not = not ?? new List<string>();
+
             this.Wrapper = wrapper;
+            
+            var info = $"Checking if {teamname} has {permission.ToString()} on {Config.Github.Org}";
+            if (this.only.Any()) 
+            {
+                info += $" but only " + string.Join(", ", this.only);
+            }
+            if (this.not.Any()) 
+            {
+                info += $" but not " + string.Join(", ", this.not);
+            }
+
+            l(info, 1);
         }
 
         public override async Task Check(List<Repository> all_repos, Repository repo)
@@ -48,16 +60,16 @@ namespace gitman
             switch (action)
             {
                 case Update.Skip:
-                    l($"[SKIP] {repo.Name} doesn't need this action applied.", 1);
+                    l($"[SKIP] {repo.Name} doesn't need this action applied.", 2);
                     break;
                 case Update.Nothing:
-                    l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
+                    l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 2);
                     break;
                 case Update.Add:
-                    l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
+                    l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 2);
                     break;
                 case Update.UpdatePermission:
-                    l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) for {repo.Name}", 1);
+                    l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) for {repo.Name}", 2);
                     break;
             }
 
@@ -100,11 +112,11 @@ namespace gitman
             var res = await Wrapper.Repo.UpdateTeamPermissionAsync(repo.Name, team, permission);
             if (res)
             {
-                l($"[MODIFIED] Added {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 1);
+                l($"[MODIFIED] Added {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 2);
             }
             else
             {
-                l($"[ERROR] Failed to add {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 1);
+                l($"[ERROR] Failed to add {team.Name} ({team.Id}) as a collaborator to {repo.Name}", 2);
             }
         }
     }
