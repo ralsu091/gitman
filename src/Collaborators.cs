@@ -72,7 +72,7 @@ namespace gitman
                     break;
             }
 
-            if (action != Update.Nothing)
+            if (new [] { Update.Add, Update.UpdatePermission}.Contains(action))
             {
                 all_repos.Add(repo);
             }
