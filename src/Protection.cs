@@ -10,7 +10,7 @@ namespace gitman
         private int reviewers;
         private string branch;
         private const string UPDATE = "[UPDATE] ";
-        private Dictionary<string, BranchProtectionRequiredReviews> cachedReviewers = new Dictionary<string, BranchProtectionRequiredReviews>();
+        private IList<string> cachedReviewers = new List<string>();
         private Dictionary<string, BranchProtectionRequiredStatusChecks> cachedStatusContexts = new Dictionary<string, BranchProtectionRequiredStatusChecks>();
 
         public Protection(string branch = "master", int reviewers = 2)
@@ -24,8 +24,6 @@ namespace gitman
             BranchProtectionSettings requiredReviewers = null;
             var message = UPDATE;
             
-            try
-            {
                 try {
                     var statusChecks = await Client.Repository.Branch.GetRequiredStatusChecks(repo.Owner.Login, repo.Name, this.branch);
                     if (statusChecks.Strict) 
@@ -38,28 +36,23 @@ namespace gitman
                 }
 
                 requiredReviewers = await Client.Repository.Branch.GetBranchProtection(repo.Owner.Login, repo.Name, this.branch);
-                var hasReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount >= reviewers;
-                if (!hasReviewers)
+                var doesNotHaveRequiredReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
+                if (doesNotHaveRequiredReviewers)
                 {
-                    if (message.Equals(UPDATE)) message += " and ";
-                    message = $"will add {reviewers} review enforcement";
-                    this.cachedReviewers.Add(repo.Name, requiredReviewers.RequiredPullRequestReviews);
+                    if (!message.Equals(UPDATE)) message += " and ";
+                    message += $"will add {reviewers} review enforcement";
+                    this.cachedReviewers.Add(repo.Name);
                 }
 
                 if (message.Equals(UPDATE))
                 {
-                    l($"[OK] {repo.Name} already has {this.branch} branch protection with {requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount} reviewers and non-strict", 1);
+                    l($"[OK] {repo.Name} already has {this.branch} branch protection with the number of reviewers and non-strict", 1);
                 }
                 else
                 {
                     l($"{message} on {repo.Name}", 1);
                     all_repos.Add(repo);
                 }
-            }
-            catch (Exception ex)
-            { 
-                l($"[ERROR] Something went wrong tryping to check the branch protection for {repo.Name}. {ex.Message}", 1);
-            }
         }
 
         public override async Task Action(Repository repo)
@@ -68,7 +61,7 @@ namespace gitman
             BranchProtectionRequiredReviewsUpdate reviewersEnforcement = null;
             BranchProtectionRequiredStatusChecksUpdate notSoStrict = null;
 
-            if (cachedReviewers.TryGetValue(repo.Name, out var protection)) {
+            if (cachedReviewers.Contains(repo.Name)) {
                 reviewersEnforcement = new BranchProtectionRequiredReviewsUpdate(false, false, reviewers);
             }
             if (cachedStatusContexts.TryGetValue(repo.Name, out var statusChecks)) {
