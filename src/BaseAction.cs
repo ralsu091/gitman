@@ -7,7 +7,7 @@ namespace gitman
 {
     public abstract class BaseAction
     {
-        public GitHubClient Client { get; set; }
+        public IGitHubClient Client { get; set; }
 
         public abstract Task Do();
 
