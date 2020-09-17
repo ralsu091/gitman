@@ -25,7 +25,7 @@ namespace gitman
             }
 
             var team_id = auditData.Teams.Single(t => t.Value.Equals(team_name)).Key;
-            l($"Team mebers in {team_name} ({team_id})", 1);
+            l($"Team members in {team_name} ({team_id})", 1);
 
             // figure out the modifications to the team
             var to_remove = auditData.MembersByTeam[team_name].Where(m => !proposed_members.Contains(m));

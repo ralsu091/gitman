@@ -69,7 +69,7 @@ namespace gitman
                 s.AppendLine($"{tabs} Branches ({Branches.Count})");
                 s.AppendLine($"{tabs}  Protected Branches ({protect.Count()})");
                 s.AppendJoin("\n",protect.Select(branch => $"{tabs}    {branch}"));
-                s.AppendLine($"\n{tabs}  Regualar Branches ({Branches.Count() - protect.Count()})");
+                s.AppendLine($"\n{tabs}  Regular Branches ({Branches.Count() - protect.Count()})");
                 s.AppendJoin("\n",Branches.Except(protect).Select(branch => $"{tabs}    {branch}"));
                 s.AppendLine();
 

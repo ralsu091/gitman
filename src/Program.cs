@@ -99,11 +99,11 @@ namespace gitman
 
         private static async Task CheckTeamMemberships(Audit.AuditDto data) 
         {
-                Console.WriteLine("\n\nChecking teams memberships");
-                foreach (var team in GetTeams())
-                {
-                    await new Memberships(data, team.Key, team.Value) { Client = client }.Do();
-                }
+            Console.WriteLine("\n\nChecking teams memberships");
+            foreach (var team in GetTeams())
+            {
+                await new Memberships(data, team.Key, team.Value) { Client = client }.Do();
+            }
         }
         
         private static Dictionary<string, List<string>> GetTeams() 
