@@ -93,41 +93,6 @@ namespace gitman
             }
 
             return Update.Nothing;
-
-            // if (repo_team != null)
-            // {
-            //     var excluded = isExcluded(repo_team.Name);
-            //     if (excluded && exclusive)
-            //     {
-            //         l($"[UPDATE] Will remove {team.Name} from {repo.Name}", 1);
-            //     }
-            //     else if (excluded && !exclusive) 
-            //     {
-            //         l($"[SKIP] {repo.Name} doesn't need this action applied.", 1);
-            //     }
-            //     else
-            //     {
-            //         l($"postition wanted={(int)this.permission} have={(int)repo_team.Permission}");
-            //         if (repo_team.Permission.ToString().Equals(this.permission.ToString(), StringComparison.CurrentCultureIgnoreCase))
-            //         {
-            //             l($"[OK] {team.Name} is already a collaborator of {repo.Name}", 1);
-            //         } 
-            //         else 
-            //         {
-            //             l($"[UPDATE] {team.Name} is not at {this.permission} (but is {repo_team.Permission}) of {repo.Name}", 1);
-            //             all_repos.Add(repo);
-            //         }
-            //     }
-            // }
-            // else if (isExcluded(repo.Name))
-            // {
-            //     l($"[SKIP] {repo.Name} does not need {team.Name} as a collaborator", 1);
-            // } 
-            // else 
-            // {
-            //     l($"[UPDATE] will add {team.Name} to {repo.Name} as {this.permission}", 1);
-            //     all_repos.Add(repo);
-            // }
         }
 
         public override async Task Action(Repository repo)

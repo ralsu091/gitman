@@ -13,13 +13,6 @@ namespace Tests
 {
     public class CollaboratorTests
     {
-        // If we didn't find the team on the repo, 
-        //  but it's in the :only list and it's an exclusive setting, then we need to remove it.  
-        //  but if it's on the :only list and it's _not_ an exclusive setting, we can skip this action
-        //  If it's not on the :only list then we're OK as long as we have the correct permissions.
-        // If we didn't find the team on the repo, and they aren't on the :only list, then we should add them. If we 
-        //  didn't find the team on the repo and they _are_ on the :only list, we should skip.
-
         public CollaboratorTests(ITestOutputHelper output) 
         {
             Console.SetOut(new Loggy(output));
@@ -54,9 +47,17 @@ namespace Tests
                 public void should_update_permission() 
                 {
                     existingTeamsOnRpos = new [] { "Alpha" }.Select(t => new GitTeam(1, t, GitTeam.Perm.pull));
-
                     var action = collab.Should("Portal", existingTeamsOnRpos, new GitTeam(1, "Alpha"), Permission.Admin);
                     Assert.Equal(Collaborators.Update.UpdatePermission, action);  
+                }
+
+                
+                [Fact]
+                public void should_not_downgrade_permission() 
+                {
+                    existingTeamsOnRpos = new [] { "Alpha" }.Select(t => new GitTeam(1, t, GitTeam.Perm.push));
+                    var action = collab.Should("Portal", existingTeamsOnRpos, new GitTeam(1, "Alpha"), Permission.Pull);
+                    Assert.Equal(Collaborators.Update.Nothing, action);  
                 }
             }
         

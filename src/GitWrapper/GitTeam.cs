@@ -3,7 +3,9 @@ using System;
 
 namespace gitman
 {
+            
     public class GitTeam {
+        // This enum has to have the same indicies as :octokit.permission
         public enum Perm { 
             admin = 0,
             push = 1,
