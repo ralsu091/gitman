@@ -73,11 +73,15 @@ namespace gitman
             
             Console.WriteLine("\n\nChecking repo collaborators");
             var wrapper = new GitWrapper(client);
-            Console.WriteLine("\n\n[] developers ");
-            await new Collaborators(wrapper, "developers") { Client = client, }.Do();
-            Console.WriteLine("\n\n[] admins");
+
+            Console.WriteLine("\n\n[ ] developers ");
+            await new Collaborators(wrapper, "developers", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "developers", only: admin_repos, permission: Permission.Pull ) { Client = client, }.Do();
+            
+            Console.WriteLine("\n\n[ ] admins");
             await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
-            Console.WriteLine("\n\n[] devops-integratrions");
+            
+            Console.WriteLine("\n\n[ ] devops-integratrions");
             await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking branch protections");
