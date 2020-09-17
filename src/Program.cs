@@ -75,6 +75,9 @@ namespace gitman
             var wrapper = new GitWrapper(client);
 
             await new Collaborators(wrapper, "developers", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "alpha", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "bravo", not: admin_repos ) { Client = client, }.Do();
+            
             await new Collaborators(wrapper, "developers", only: admin_repos, permission: Permission.Pull ) { Client = client, }.Do();
             
             await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
