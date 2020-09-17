@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Octokit;
 using System.Linq;
+using System;
 
 namespace gitman
 {
@@ -47,7 +48,7 @@ namespace gitman
                 bool updated = false;
                 var removed = await wrapper.client.Organization.Team.RemoveRepository(target.Id, Config.Github.Org, reponame);
                 if (removed) {
-                    updated = await wrapper.client.Organization.Team.AddRepository(target.Id, Config.Github.Org, target.Name, new RepositoryPermissionRequest(targetPermission));
+                    updated = await wrapper.client.Organization.Team.AddRepository(target.Id, Config.Github.Org, reponame, new RepositoryPermissionRequest(targetPermission));
                 }
 
                 return updated;
