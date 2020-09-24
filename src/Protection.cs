@@ -10,60 +10,80 @@ namespace gitman
     {
         private readonly IReadOnlyList<string> EmptyContexts;
         private int reviewers;
-        private string branch;
         private const string UPDATE = "[UPDATE] ";
+        private Dictionary<string, string> defaultBranches = new Dictionary<string, string>();
         private IList<string> cachedReviewers = new List<string>();
         private Dictionary<string, BranchProtectionRequiredStatusChecks> cachedStatusContexts = new Dictionary<string, BranchProtectionRequiredStatusChecks>();
 
-        
-        public Protection(string branch = "master", int reviewers = 2)
+        public Protection(int reviewers = 2)
         {
             EmptyContexts = new List<string>().AsReadOnly();
 
             this.reviewers = reviewers;
-            this.branch = branch;
         }
 
         public override async Task Check(List<Repository> all_repos, Repository repo)
         {
-            BranchProtectionSettings requiredReviewers = null;
             var message = UPDATE;
             
-            try {
-                var statusChecks = await Client.Repository.Branch.GetRequiredStatusChecks(repo.Owner.Login, repo.Name, this.branch);
-                if (statusChecks.Strict) 
-                {
-                    message += "will remove strict reviewers";
-                    this.cachedStatusContexts.Add(repo.Name, statusChecks);
-                }
-            } catch (Octokit.NotFoundException) { 
-                // no-op -- we didn't find any restrictions so that is good. 
+            if (await ShouldUnsetStrict(repo))
+            {
+                if (!message.Equals(UPDATE)) message += " and ";
+                message += "will remove strict reviewers";
             }
 
-            var doesNotHaveRequiredReviewers = true;
-            try {
-                requiredReviewers = await Client.Repository.Branch.GetBranchProtection(repo.Owner.Login, repo.Name, this.branch);
-                doesNotHaveRequiredReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
-            } catch (Octokit.NotFoundException) {
-                // no-op -- this usually means that it's a new repo
-            }
-            
-            if (doesNotHaveRequiredReviewers)
+            if (await ShouldSetReviewers(repo))
             {
                 if (!message.Equals(UPDATE)) message += " and ";
                 message += $"will add {reviewers} review enforcement";
-                this.cachedReviewers.Add(repo.Name);
             }
 
             if (message.Equals(UPDATE))
             {
-                l($"[OK] {repo.Name} already has {this.branch} branch protection with the number of reviewers and non-strict", 1);
+                l($"[OK] {repo.Name} already has {repo.DefaultBranch} branch protection with the number of reviewers and non-strict", 1);
             }
             else
             {
                 l($"{message} on {repo.Name}", 1);
                 all_repos.Add(repo);
             }
+        }
+
+        private async Task<bool> ShouldUnsetStrict(Repository repo) 
+        {
+            var should = false;
+            try {
+                var statusChecks = await Client.Repository.Branch.GetRequiredStatusChecks(repo.Owner.Login, repo.Name, repo.DefaultBranch);
+                if (statusChecks.Strict) 
+                {
+                    this.cachedStatusContexts.Add(repo.Name, statusChecks);
+                    should = true;
+                }
+            } catch (Octokit.NotFoundException) { 
+                // no-op -- we didn't find any restrictions so that is good. 
+            }
+            return should;
+        }
+
+        private async Task<bool> ShouldSetReviewers(Repository repo) 
+        {
+            var should = false;
+
+            var doesNotHaveRequiredReviewers = true;
+            try {
+                var requiredReviewers = await Client.Repository.Branch.GetBranchProtection(repo.Owner.Login, repo.Name, repo.DefaultBranch);
+                doesNotHaveRequiredReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
+
+                if (doesNotHaveRequiredReviewers)
+                {
+                    this.cachedReviewers.Add(repo.Name);
+                    should = true;
+                }
+            } catch (Octokit.NotFoundException) {
+                // no-op -- this usually means that it's a new repo
+            }
+
+            return should;
         }
 
         public override async Task Action(Repository repo)
@@ -82,7 +102,7 @@ namespace gitman
                 await Client.Repository.Branch.UpdateBranchProtection(
                     repo.Owner.Login,
                     repo.Name, 
-                    this.branch, 
+                    repo.DefaultBranch, 
                     new BranchProtectionSettingsUpdate(
                         statusChecksUpdate,
                         new BranchProtectionRequiredReviewsUpdate(false, false, reviewers),
@@ -90,7 +110,7 @@ namespace gitman
                     )
                 );
             } catch (Octokit.NotFoundException) {
-                l($"[WARN] could not set anything on {repo.Name} because {this.branch} does not exist.", 1);
+                l($"[WARN] could not set anything on {repo.Name} because {repo.DefaultBranch} does not exist.", 1);
             }
         }
     }
