@@ -11,8 +11,6 @@ namespace gitman
         private readonly IReadOnlyList<string> EmptyContexts;
         private int reviewers;
         private const string UPDATE = "[UPDATE] ";
-        private Dictionary<string, string> defaultBranches = new Dictionary<string, string>();
-        private IList<string> cachedReviewers = new List<string>();
         private Dictionary<string, BranchProtectionRequiredStatusChecks> cachedStatusContexts = new Dictionary<string, BranchProtectionRequiredStatusChecks>();
 
         public Protection(int reviewers = 2)
@@ -25,6 +23,10 @@ namespace gitman
         public override async Task Check(List<Repository> all_repos, Repository repo)
         {
             var message = UPDATE;
+            if (repo.Name.Equals("nonProdAdmin", StringComparison.InvariantCultureIgnoreCase)) 
+            {
+                l("fuck");
+            }
             
             if (await ShouldUnsetStrict(repo))
             {
@@ -60,6 +62,7 @@ namespace gitman
                     should = true;
                 }
             } catch (Octokit.NotFoundException) { 
+                l("DID NOT FIND REQUIRED STATUS CHECKS FOR " + repo.Name, 1);
                 // no-op -- we didn't find any restrictions so that is good. 
             }
             return should;
@@ -68,19 +71,14 @@ namespace gitman
         private async Task<bool> ShouldSetReviewers(Repository repo) 
         {
             var should = false;
-
-            var doesNotHaveRequiredReviewers = true;
             try {
                 var requiredReviewers = await Client.Repository.Branch.GetBranchProtection(repo.Owner.Login, repo.Name, repo.DefaultBranch);
-                doesNotHaveRequiredReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
-
-                if (doesNotHaveRequiredReviewers)
-                {
-                    this.cachedReviewers.Add(repo.Name);
-                    should = true;
-                }
+                // Does not have the required amount of reviewers?
+                should  = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
             } catch (Octokit.NotFoundException) {
-                // no-op -- this usually means that it's a new repo
+                l("DID NOT FIND SET REVIEWERS FOR " + repo.Name, 1);
+                // this usually means that it's a new repo, and we have to set it up
+                should = true;
             }
 
             return should;
