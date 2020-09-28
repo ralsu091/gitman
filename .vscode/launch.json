@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/bin/Debug/netcoreapp3.1/gitman.dll",
-            "args": ["-u", "${env:GITHUB_USERNAME}", "-t", "${env:GITHUB_TOKEN}"],
+            "args": ["-u", "${env:GITHUB_USERNAME}", "-t", "${env:GITHUB_TOKEN}", "--no-dryrun"],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false
