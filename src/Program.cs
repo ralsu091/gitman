@@ -69,31 +69,31 @@ namespace gitman
             client.Credentials = new Credentials(Config.Github.User, Config.Github.Token);
 
             Console.WriteLine("\n\nChecking merge setting");
-            // await new Merging(squash: true) { Client = client }.Do();
+            await new Merging(squash: true) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking repo collaborators");
             var wrapper = new GitWrapper(client);
 
-            // await new Collaborators(wrapper, "developers", not: admin_repos ) { Client = client, }.Do();
-            // await new Collaborators(wrapper, "alpha", not: admin_repos ) { Client = client, }.Do();
-            // await new Collaborators(wrapper, "bravo", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "developers", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "alpha", not: admin_repos ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "bravo", not: admin_repos ) { Client = client, }.Do();
             
-            // await new Collaborators(wrapper, "developers", only: admin_repos, permission: Permission.Pull ) { Client = client, }.Do();
+            await new Collaborators(wrapper, "developers", only: admin_repos, permission: Permission.Pull ) { Client = client, }.Do();
             
-            // await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
+            await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
             
-            // await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
+            await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
             
             Console.WriteLine("\n\nChecking branch protections");
             await new Protection() { Client = client }.Do();
 
             Console.WriteLine("\n\nPerforming team audit");
-            // var audit = new Audit(outputPath: Config.ReportingPath) { Client = client };
-            // await audit.Do();
+            var audit = new Audit(outputPath: Config.ReportingPath) { Client = client };
+            await audit.Do();
 
             if (Config.HasTeamsStructureFile)
             {
-                // await CheckTeamMemberships(audit.Data);
+                await CheckTeamMemberships(audit.Data);
             }
         }
 
