@@ -22,12 +22,7 @@ namespace gitman
 
         public override async Task Check(List<Repository> all_repos, Repository repo)
         {
-            var message = UPDATE;
-            if (repo.Name.Equals("nonProdAdmin", StringComparison.InvariantCultureIgnoreCase)) 
-            {
-                l("fuck");
-            }
-            
+            var message = UPDATE;            
             if (await ShouldUnsetStrict(repo))
             {
                 if (!message.Equals(UPDATE)) message += " and ";
@@ -62,7 +57,6 @@ namespace gitman
                     should = true;
                 }
             } catch (Octokit.NotFoundException) { 
-                l("DID NOT FIND REQUIRED STATUS CHECKS FOR " + repo.Name, 1);
                 // no-op -- we didn't find any restrictions so that is good. 
             }
             return should;
