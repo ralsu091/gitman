@@ -51,9 +51,9 @@ namespace gitman
             var should = false;
             try {
                 var statusChecks = await Client.Repository.Branch.GetRequiredStatusChecks(repo.Owner.Login, repo.Name, repo.DefaultBranch);
+                this.cachedStatusContexts.Add(repo.Name, statusChecks);
                 if (statusChecks.Strict) 
                 {
-                    this.cachedStatusContexts.Add(repo.Name, statusChecks);
                     should = true;
                 }
             } catch (Octokit.NotFoundException) { 
