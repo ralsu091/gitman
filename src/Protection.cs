@@ -32,7 +32,7 @@ namespace gitman
             if (await ShouldSetReviewers(repo))
             {
                 if (!message.Equals(UPDATE)) message += " and ";
-                message += $"will add {reviewers} review enforcement";
+                message += $"will add {reviewers} review enforcement and unset stale reviewers";
             }
 
             if (message.Equals(UPDATE))
@@ -68,9 +68,12 @@ namespace gitman
             try {
                 var requiredReviewers = await Client.Repository.Branch.GetBranchProtection(repo.Owner.Login, repo.Name, repo.DefaultBranch);
                 // Does not have the required amount of reviewers?
-                should  = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount < reviewers;
+                var hasReviewers = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.RequiredApprovingReviewCount >= reviewers;
+                // Is is set to stale?
+                var dismissStaleReviews = requiredReviewers?.RequiredPullRequestReviews == null || requiredReviewers.RequiredPullRequestReviews.DismissStaleReviews;
+
+                should = !hasReviewers || dismissStaleReviews;
             } catch (Octokit.NotFoundException) {
-                l("DID NOT FIND SET REVIEWERS FOR " + repo.Name, 1);
                 // this usually means that it's a new repo, and we have to set it up
                 should = true;
             }
