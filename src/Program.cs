@@ -26,6 +26,7 @@ namespace gitman
             , "devops-docker"
         };
         private static List<string> chromeos_repos = new List<string> {
+            "android-scm-integration",
             "chromeos-scm-integration"
         };
         private static List<string> admin_repos = new List<string> {
