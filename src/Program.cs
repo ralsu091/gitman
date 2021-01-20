@@ -25,6 +25,10 @@ namespace gitman
             , "devops-sdk-gocert"
             , "devops-docker"
         };
+        private static List<string> chromeos_repos = new List<string> {
+            "android-scm-integration",
+            "chromeos-scm-integration"
+        };
         private static List<string> admin_repos = new List<string> {
             "gutcheck"
         };
@@ -83,7 +87,8 @@ namespace gitman
             await new Collaborators(wrapper, "admins", Permission.Admin) { Client = client }.Do();
             
             await new Collaborators(wrapper, "devops-integrations", only: devops_repos) { Client = client }.Do();
-            
+            await new Collaborators(wrapper, "chrome", only: chromeos_repos) { Client = client }.Do();
+
             Console.WriteLine("\n\nChecking branch protections");
             await new Protection() { Client = client }.Do();
 
